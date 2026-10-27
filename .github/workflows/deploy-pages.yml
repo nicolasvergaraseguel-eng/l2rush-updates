@@ -1,0 +1,57 @@
+name: L2Rush - Publicar parches y manifest SHA256
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "l2rush-github-pages"
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Crear manifiesto y publicar GitHub Pages
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Descargar archivos del repositorio
+        uses: actions/checkout@v4
+
+      - name: Instalar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Preparar sitio y generar manifest.json automaticamente
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -d files || { echo "ERROR: falta la carpeta files/ en la raiz del repositorio"; exit 1; }
+          mkdir -p _site
+          cp -R files _site/files
+          if [ -f index.html ]; then cp index.html _site/index.html; fi
+          if [ -f news.json ]; then cp news.json _site/news.json; fi
+          touch _site/.nojekyll
+          VERSION="SEASON1-${GITHUB_SHA:0:12}"
+          python scripts/build_manifest.py --source files --output _site/manifest.json --version "$VERSION"
+          echo "Contenido generado:" && find _site -type f | sort
+
+      - name: Configurar GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Empaquetar archivos de la pagina
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: Publicar pagina y parches
+        id: deployment
+        uses: actions/deploy-pages@v4
