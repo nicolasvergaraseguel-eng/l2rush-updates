@@ -1,0 +1,12 @@
+{
+  "schema": 1,
+  "version": "PRUEBA-GITHUB-1.0.1",
+  "base_path": "files/",
+  "files": [
+    {
+      "path": "l2rush_prueba_actualizacion.txt",
+      "size": 141,
+      "sha256": "2cb52bf50fb30cf62c17bdb371dd93507e9733a7b38e99d348ed6b1856eb3bdb"
+    }
+  ]
+}
